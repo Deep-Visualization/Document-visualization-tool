@@ -87,7 +87,7 @@ The page loads CSV, JSON and text files, which browsers block when a page is ope
 python -m http.server 8000
 ```
 
-Then open **http://localhost:8000/index.html**. In VS Code you can instead right-click `index.html` and choose **Open with Live Server**.
+ In VS Code you can right-click `index.html` and choose **Open with Live Server**.
 
 An internet connection is needed, because D3, jQuery and the fonts load from the web.
 
