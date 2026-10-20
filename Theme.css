@@ -1,0 +1,52 @@
+/* =========================================================
+   Theme: Pistachio
+   Kernel green, skin pink and a dark roasted base.
+   All colors are solid (no see-through colors). Text on each
+   color is black or white, whichever reads more clearly.
+   The page opens in light mode; the Dark Mode button switches.
+   Chart colors are set in index.html's script and are not affected.
+   ========================================================= */
+
+/* Light mode (how the page opens) */
+:root {
+    --page:        #F6F7F3;  /* neutral off-white page */
+    --surface:     #FFFFFF;  /* cards */
+    --block:       #F0F2EB;  /* cluster blocks */
+    --border:      #D3D9C8;  /* borders */
+    --titlebar:    #4A6A1C;  /* deep pistachio green */
+    --titlebar-text: #FFFFFF;
+    --filterbar:   #D7E6B8;  /* pale pistachio green */
+    --filterbar-text: #000000;
+    --kernel:      #8DB33F;  /* pistachio green: document items */
+    --kernel-text: #000000;
+    --heading-green: #3F5E14;/* cluster headings */
+    --skin:        #A8475C;  /* pistachio skin pink */
+    --skin-text:   #FFFFFF;
+    --skin-title:  #9C3F55;  /* document titles in the workspace */
+    --text:        #000000;
+    --muted:       #5A6050;
+    --input-bg:    #FFFFFF;
+    --input-text:  #000000;
+}
+
+/* Dark mode (after clicking "Dark Mode") */
+body.dark {
+    --page:        #14180F;
+    --surface:     #1C2216;
+    --block:       #232B1C;
+    --border:      #3A4530;
+    --titlebar:    #4A6A1C;
+    --titlebar-text: #FFFFFF;
+    --filterbar:   #2E3D19;
+    --filterbar-text: #FFFFFF;
+    --kernel:      #8DB33F;
+    --kernel-text: #000000;
+    --heading-green: #A9CC63;
+    --skin:        #A8475C;
+    --skin-text:   #FFFFFF;
+    --skin-title:  #EE97A8;
+    --text:        #FFFFFF;
+    --muted:       #BFC5B3;
+    --input-bg:    #232B1C;
+    --input-text:  #FFFFFF;
+}
