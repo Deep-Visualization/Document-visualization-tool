@@ -1,144 +1,123 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document Explorer</title>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
   <script src="https://d3js.org/d3.v7.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="theme.css">
+  <!-- Hide the sections before the page is first drawn, so they can fade in -->
+  <script>document.documentElement.classList.add("fade-ready");</script>
 
   <style>
+    /* Page colors come from theme.css. Square corners, no shadows. */
     body {
-      font-family: 'Poppins', sans-serif;
+      font-family: 'Poppins', Arial, sans-serif;
       margin: 0;
       padding: 0;
-      background: #f9f9f9;
-      color: #2b2b2b;
+      background: var(--page);
+      color: var(--text);
       transition: background 0.3s, color 0.3s;
     }
 
-    body.dark {
-      background: #1a1a1a;
-      color: #f0f0f0;
+    /* Elegant headings */
+    h1, h3, h4, .section-title {
+      font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
     }
 
-    body.dark .navbar {
-      background: #333;
-      color: white;
-    }
-
-    body.dark .navbar input {
-      background: #444;
-      color: white;
-      border: 1px solid #555;
-    }
-
-    body.dark .doc-item {
-      background: #2a2a2a;
-      color: #e0e0e0;
-      border-color: #444;
-    }
-
-    body.dark .doc-item p {
-      color: #d0d0d0;
-    }
-
-    body.dark .doc-item button {
-      color: #f28b82;
-    }
-
-    body.dark .navbar button,
-    body.dark .cluster-block li,
-    body.dark .doc-item,
-    body.dark .panel,
-    body.dark #bubble-chart,
-    body.dark svg {
-      background: #2a2a2a;
-      color: #e0e0e0;
-      border-color: #444;
-    }
-
-    body.dark .tooltip {
-      background: #333;
-      color: #fff;
-      border: 1px solid #555;
-    }
-
-    body.dark .cluster-block {
-      background: #252525;
-      border-color: #444;
-    }
-
-    body.dark .cluster-block h4 {
-      color: #4db6ac;
-    }
-
-    body.dark .cluster-block li {
-      background: #3a3a3a;
-      color: #e0e0e0;
-    }
-
-    body.dark #cluster-filters {
-      background: #252525;
-    }
-
-    body.dark #bubble-chart,
-    body.dark .panel {
-      background: #252525;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
-    }
-
-    body.dark svg {
-      background: #252525;
-    }
-
-    body.dark .highlighted-doc {
-      background-color: #5d4037 !important;
-      color: #fff !important;
-    }
-
+    /* Title bar */
     .navbar {
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
       align-items: center;
-      background: #00897b;
-      padding: 15px 20px;
-      color: white;
+      gap: 12px 20px;
+      background: var(--titlebar);
+      border-bottom: 4px solid var(--skin);
+      padding: 18px 20px;
+      color: var(--titlebar-text);
+    }
+
+    .navbar h1 {
+      margin: 0;
+      font-size: 30px;
+      font-weight: 700;
+      color: var(--titlebar-text);
+    }
+
+    .navbar .subtitle {
+      margin: 4px 0 0;
+      font-size: 14px;
+      font-weight: 300;
+      color: var(--titlebar-text);
+    }
+
+    .navbar .tools {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
     }
 
     .navbar input {
       width: 220px;
-      padding: 8px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
+      padding: 8px 10px;
+      border-radius: 0;
+      border: 1px solid var(--border);
+      background: var(--input-bg);
+      color: var(--input-text);
+      font-family: inherit;
+    }
+
+    button {
+      font-family: inherit;
+      border-radius: 0;
+      cursor: pointer;
     }
 
     .navbar button {
-      background: #fbc02d;
-      color: #2b2b2b;
+      background: var(--skin);
+      color: var(--skin-text);
       padding: 8px 14px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      margin-left: 10px;
+      border: 1px solid var(--skin);
     }
 
     .navbar button:hover {
-      background: #f9a825;
+      background: var(--page);
+      color: var(--text);
     }
 
+    /* Cluster filter: stays fixed at the top while you scroll */
     #cluster-filters {
+      position: sticky;
+      top: 0;
+      z-index: 100;
       display: flex;
-      gap: 10px;
+      gap: 10px 18px;
       padding: 10px 20px;
       flex-wrap: wrap;
-      background: #e0f2f1;
+      align-items: center;
+      background: var(--filterbar);
+      color: var(--filterbar-text);
+      border-bottom: 1px solid var(--border);
+    }
+
+    #cluster-filters .filter-title {
+      font-size: 14px;
+      font-weight: 600;
     }
 
     #cluster-filters label {
       font-size: 14px;
+      cursor: pointer;
+    }
+
+    #cluster-filters input[type="checkbox"] {
+      accent-color: var(--titlebar);
+      transform: scale(1.2);
     }
 
     #container {
@@ -150,26 +129,56 @@
 
     .panel {
       flex: 1;
+      min-width: 0;
       padding: 20px;
-      background: #ffffff;
-      border-radius: 14px;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 0;
+    }
+
+    .panel h3 {
+      margin-top: 0;
+      font-size: 22px;
     }
 
     .cluster-block {
       margin-bottom: 20px;
-      border: 1px solid #ccc;
-      border-radius: 10px;
+      border: 1px solid var(--border);
+      border-radius: 0;
       padding: 10px;
-      background: #f5f5f5;
+      background: var(--block);
     }
 
     .cluster-block h4 {
       margin: 0 0 10px 0;
-      color: #00897b;
+      font-size: 18px;
+      color: var(--heading-green);
       display: flex;
       justify-content: space-between;
       align-items: center;
+      cursor: move;
+    }
+
+    .cluster-block h4 .count {
+      font-family: 'Poppins', Arial, sans-serif;
+      font-weight: 400;
+      font-size: 13px;
+      color: var(--muted);
+      margin-left: 8px;
+    }
+
+    .open-all {
+      font-family: 'Poppins', Arial, sans-serif;
+      background: var(--skin);
+      color: var(--skin-text);
+      border: 1px solid var(--skin);
+      padding: 4px 10px;
+      font-size: 13px;
+    }
+
+    .open-all:hover {
+      background: var(--surface);
+      color: var(--text);
     }
 
     .cluster-block ul {
@@ -180,57 +189,72 @@
     }
 
     .cluster-block li {
-      background: #26a69a;
+      background: var(--kernel);
       margin: 5px 0;
       padding: 10px;
-      border-radius: 6px;
-      color: white;
+      border-radius: 0;
+      color: var(--kernel-text);
       text-align: center;
       cursor: pointer;
     }
 
     .cluster-placeholder {
-  background: #c8e6c9;
-  border: 2px dashed #388e3c;
-  height: 100px;
-  margin-bottom: 20px;
-  border-radius: 10px;
-}
+      background: var(--block);
+      border: 2px dashed var(--titlebar);
+      height: 100px;
+      margin-bottom: 20px;
+    }
 
+    .empty-note {
+      color: var(--muted);
+      font-size: 14px;
+    }
 
     #documents .doc-item {
-      background: #fff;
-      border: 1px solid #ddd;
-      border-radius: 10px;
+      background: var(--block);
+      border: 1px solid var(--border);
+      border-radius: 0;
       padding: 16px;
       margin-bottom: 12px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
     }
 
-    #documents .doc-item button {
-      float: right;
-      background: none;
-      border: none;
-      color: #c62828;
-      font-size: 16px;
-      cursor: pointer;
+    #documents .doc-item h4 {
+      font-size: 18px;
+      color: var(--skin-title);
     }
 
+    #documents .doc-item p {
+      white-space: pre-wrap;   /* keep the document's own line breaks */
+      line-height: 1.6;
+    }
+
+    #documents .doc-item .close-doc {
+      background: var(--skin);
+      color: var(--skin-text);
+      border: 1px solid var(--skin);
+      padding: 3px 10px;
+      font-size: 13px;
+    }
+
+    /* Bubble chart box: sized by the chart itself */
     #bubble-chart {
-      margin: 40px auto;
+      margin: 0 auto 40px;
       width: 95%;
-      height: 600px;
-      background: #ffffff;
-      border-radius: 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
       padding: 20px;
-      overflow-y: scroll;
-      box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+      box-sizing: border-box;
     }
 
     #bubble-chart svg {
+      display: block;
       width: 100%;
-      height: 1200px;
-      background: white;
+      height: auto;
+    }
+
+    .section-title {
+      margin: 32px 0 14px 2.5%;
+      font-size: 24px;
     }
 
     .tooltip {
@@ -238,7 +262,6 @@
       background: #333;
       color: #fff;
       padding: 6px 10px;
-      border-radius: 6px;
       font-size: 12px;
       pointer-events: none;
       z-index: 9999;
@@ -250,38 +273,96 @@
       font-weight: bold;
     }
     
+    /* Chart backgrounds stay as they were */
     svg {
       background: white;
-      border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
 
+    body.dark svg {
+      background: #252525;
+    }
+
+    body.dark .tooltip {
+      background: #333;
+      color: #fff;
+      border: 1px solid #555;
+    }
+
+    body.dark .highlighted-doc {
+      background-color: #5d4037 !important;
+      color: #fff !important;
+    }
+
+    #mds-view {
+      width: 95%;
+      margin: 0 auto 40px;
+      box-sizing: border-box;
+    }
+
+    #mds-view svg {
+      display: block;
+      width: 100%;
+      max-width: 900px;
+      height: auto;
+      margin: 0 auto;
+    }
+
+    /* The workspace is always as tall as the Documents card beside it.
+       Open documents scroll inside it instead of making the card longer. */
     #workspace {
-      max-height: 80vh;
-      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
     }
 
     #documents {
-      max-height: 65vh;
+      flex: 1 1 auto;
+      height: 0;
       overflow-y: auto;
     }
 
-    #cluster-filters input[type="checkbox"] {
-      accent-color: #00897b;
-      transform: scale(1.2);
+    @media (max-width: 800px) {
+      #container {
+        flex-direction: column;
+      }
+      #documents {
+        height: auto;
+        max-height: 65vh;
+      }
+      .navbar input {
+        width: 100%;
+      }
     }
 
-    
-    
+    /* Fade-in: sections start hidden, then fade in as they scroll into view */
+    .fade-ready :is(.navbar, #container > .panel, .section-title, #bubble-chart, #mds-view) {
+      transition: opacity 0.9s ease, transform 0.9s ease;
+    }
+
+    .fade-ready :is(.navbar, #container > .panel, .section-title, #bubble-chart, #mds-view):not(.show) {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .fade-ready :is(.navbar, #container > .panel, .section-title, #bubble-chart, #mds-view) {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+      }
+    }
   </style>
 </head>
 <body>
 
   <div class="navbar">
-    <input type="text" id="search-bar" placeholder="Search...">
     <div>
-      <button id="reset-btn">🔄 Reset Workspace</button>
-      <button id="mode-toggle">🌙 Dark Mode</button>
+      <h1>Document Explorer</h1>
+      <p class="subtitle">Explore a collection of documents grouped into clusters by their content</p>
+    </div>
+    <div class="tools">
+      <input type="text" id="search-bar" placeholder="Search documents..." aria-label="Search documents">
+      <button id="reset-btn">Reset Workspace</button>
+      <button id="mode-toggle">Dark Mode</button>
     </div>
   </div>
 
@@ -289,21 +370,21 @@
 
   <div id="container">
     <div id="doc-list" class="panel">
-      <h3>📄 Documents</h3>
+      <h3>Documents</h3>
       <div id="cluster-list"></div>
     </div>
     <div id="workspace" class="panel">
-      <h3>🧩 Document Workspace</h3>
-      <div id="documents"></div>
+      <h3>Document Workspace</h3>
+      <div id="documents"><p class="empty-note">Click a document in the list or on either chart to open it here.</p></div>
     </div>
   </div>
 
-  <h3 style="margin-left: 20px;">🫧 Cluster Visualization</h3>
+  <h3 class="section-title">Cluster Visualization</h3>
   <div id="bubble-chart"></div>
 
-  <h3 style="margin-left: 20px;">📉 MDS Plot with Cluster Coloring</h3>
+  <h3 class="section-title">MDS Plot with Cluster Coloring</h3>
   <div id="mds-view" class="panel">
-    <svg width="800" height="550"></svg>
+    <svg viewBox="0 0 800 550" role="img" aria-label="MDS scatter plot of documents colored by cluster"></svg>
   </div>
 
   <script>
@@ -315,14 +396,16 @@
       $modeToggle.on("click", function () {
         $body.toggleClass("dark");
         const isDark = $body.hasClass("dark");
-        $(this).text(isDark ? "☀️ Light Mode" : "🌙 Dark Mode");
-        
+        $(this).text(isDark ? "Light Mode" : "Dark Mode");
+
         // Update SVG backgrounds
         if (isDark) {
           d3.selectAll("svg").style("background", "#252525");
         } else {
           d3.selectAll("svg").style("background", "white");
         }
+        // Cluster titles follow the light/dark text color (bubble labels stay dark on the light bubbles)
+        d3.selectAll(".cluster-title").attr("fill", isDark ? "#f0f0f0" : "#2b2b2b");
       });
     });
 
@@ -335,8 +418,8 @@
       for (const [cluster, docs] of Object.entries(clusterData)) {
         const $block = $(`
           <div class="cluster-block" data-cluster="${cluster}">
-            <h4>Cluster ${cluster}
-              <button class="open-all" data-cluster="${cluster}">📂 Open All</button>
+            <h4><span>Cluster ${cluster}<span class="count">${docs.length} doc${docs.length === 1 ? "" : "s"}</span></span>
+              <button class="open-all" data-cluster="${cluster}">Open All</button>
             </h4>
             <ul></ul>
           </div>
@@ -359,20 +442,23 @@
       });
 
       $("#cluster-list").sortable({
-  handle: "h4",
-  placeholder: "cluster-placeholder",
-  tolerance: "pointer",
-  forcePlaceholderSize: true
-});
-
+        handle: "h4",
+        placeholder: "cluster-placeholder",
+        tolerance: "pointer",
+        forcePlaceholderSize: true
+      });
     }
 
     function openDocInWorkspace(docId) {
-      if ($(`#documents .doc-item:contains(${docId})`).length) return;
-      const docDiv = $("<div>").addClass("doc-item").html(`
+      // Already open? (Before: this searched the text of open documents, so a document
+      // that mentioned another document's name could block that one from opening.)
+      if ($("#documents .doc-item").filter((i, el) => $(el).data("doc") === docId).length) return;
+      $("#documents .empty-note").remove();
+
+      const docDiv = $("<div>").addClass("doc-item").data("doc", docId).html(`
         <div style="display:flex;justify-content:space-between;">
           <h4 style="margin:0;">${docId}</h4>
-          <button class="close-doc">✖</button>
+          <button class="close-doc" aria-label="Close ${docId}">Close</button>
         </div>
         <p><em>Loading...</em></p>
       `);
@@ -380,27 +466,78 @@
       docDiv.find('.close-doc').on('click', () => docDiv.remove());
 
       fetch(`dataset/${docId}`)
-        .then(res => res.text())
+        .then(res => {
+          if (!res.ok) throw new Error(res.status);
+          return res.text();
+        })
         .then(data => docDiv.find("p").text(data))
-        .catch(() => docDiv.find("p").text("❌ Error loading content."));
+        .catch(() => docDiv.find("p").text("This document couldn't be loaded. Check that it is in the dataset folder."));
     }
 
+    // One shared tooltip for the bubble chart.
+    // (Before: each hover added a new tooltip and removed every ".tooltip" on the page,
+    // which also deleted the MDS plot's tooltip, so MDS hovering stopped working.)
+    const bubbleTooltip = d3.select("body").append("div")
+      .attr("class", "tooltip")
+      .style("display", "none");
+
     function setupBubbleChart(data) {
-      const width = document.getElementById("bubble-chart").offsetWidth;
-      const height = 500;
-      const svg = d3.select("#bubble-chart").append("svg").attr("width", width).attr("height", height);
+      const width = document.getElementById("bubble-chart").clientWidth - 40;
       const color = d3.scaleOrdinal(d3.schemeSet2);
 
+      const BASE_RADIUS = 24;
       const nodes = data.map(d => ({
         id: d.Document,
         cluster: +d.Cluster,
-        radius: 34 + Math.random() * 10
+        radius: BASE_RADIUS
       }));
 
+      // Give each cluster horizontal space based on how many documents it has.
+      // (Before: every cluster got the same narrow slot, so the cluster with 112 documents
+      // spilled far outside the chart.)
+      const clusters = [...new Set(nodes.map(d => d.cluster))].sort((a, b) => a - b);
+      const counts = d3.rollup(nodes, v => v.length, d => d.cluster);
+      const weights = clusters.map(c => Math.sqrt(counts.get(c)) + 1);
+      const totalWeight = d3.sum(weights);
+      const centerX = new Map();
+      let runningX = 0;
+      clusters.forEach((c, i) => {
+        const slot = width * weights[i] / totalWeight;
+        centerX.set(c, runningX + slot / 2);
+        runningX += slot;
+      });
+
+      // Height large enough for the biggest cluster
+      const biggest = d3.max(clusters, c => counts.get(c));
+      const packedDiameter = Math.sqrt(biggest * Math.PI * (BASE_RADIUS + 3) ** 2 / 0.68);
+      const height = Math.max(320, Math.ceil(packedDiameter) + 80);
+
+      const svg = d3.select("#bubble-chart").append("svg")
+        .attr("viewBox", `0 0 ${width} ${height}`)
+        .attr("role", "img")
+        .attr("aria-label", "Bubble chart of documents grouped by cluster");
+
+      // Cluster titles above each group
+      svg.selectAll(".cluster-title")
+        .data(clusters)
+        .enter()
+        .append("text")
+        .attr("class", "cluster-title")
+        .attr("x", c => centerX.get(c))
+        .attr("y", 26)
+        .attr("text-anchor", "middle")
+        .attr("font-size", "14px")
+        .attr("font-weight", 600)
+        .attr("fill", document.body.classList.contains("dark") ? "#f0f0f0" : "#2b2b2b")
+        .attr("data-cluster", c => c)
+        .text(c => `Cluster ${c} · ${counts.get(c)} doc${counts.get(c) === 1 ? "" : "s"}`);
+
+      const centerY = 40 + (height - 40) / 2;
+
       const simulation = d3.forceSimulation(nodes)
-        .force("x", d3.forceX(d => (width / 6) * (d.cluster + 1)).strength(0.6))
-        .force("y", d3.forceY(height / 2).strength(0.4))
-        .force("collide", d3.forceCollide().radius(d => d.radius + 5))
+        .force("x", d3.forceX(d => centerX.get(d.cluster)).strength(0.12))
+        .force("y", d3.forceY(centerY).strength(0.12))
+        .force("collide", d3.forceCollide().radius(d => d.radius + 3).iterations(3))
         .on("tick", ticked);
 
       node = svg.selectAll("circle")
@@ -410,36 +547,51 @@
         .attr("r", d => d.radius)
         .attr("fill", d => color(d.cluster))
         .attr("data-cluster", d => d.cluster)
+        .style("cursor", "pointer")
         .on("click", function(event, d) {
           openDocInWorkspace(d.id);
 
-          const currentRadius = d3.select(this).attr("r");
-          const newRadius = currentRadius == d.radius ? d.radius * 1.5 : d.radius;
-
+          // Toggle a larger bubble, and let the others move out of its way
+          d.radius = d.radius === BASE_RADIUS ? BASE_RADIUS * 1.5 : BASE_RADIUS;
           d3.select(this)
             .transition()
             .duration(300)
-            .attr("r", newRadius);
+            .attr("r", d.radius);
+          simulation.force("collide").radius(n => n.radius + 3);
+          simulation.alpha(0.3).restart();
         })
         .on("mouseover", (event, d) => {
-          d3.select("body").append("div")
-            .attr("class", "tooltip")
+          bubbleTooltip
+            .style("display", "block")
             .style("top", `${event.pageY - 40}px`)
             .style("left", `${event.pageX + 10}px`)
             .text(`Doc: ${d.id}, Cluster: ${d.cluster}`);
         })
-        .on("mouseout", () => d3.selectAll(".tooltip").remove());
+        .on("mousemove", event => {
+          bubbleTooltip
+            .style("top", `${event.pageY - 40}px`)
+            .style("left", `${event.pageX + 10}px`);
+        })
+        .on("mouseout", () => bubbleTooltip.style("display", "none"));
 
-      labels = svg.selectAll("text")
+      labels = svg.selectAll(".bubble-label")
         .data(nodes)
         .enter()
         .append("text")
+        .attr("class", "bubble-label")
         .text(d => d.id)
-        .attr("font-size", "11px")
+        .attr("font-size", "10px")
         .attr("text-anchor", "middle")
-        .attr("dy", "0.3em");
+        .attr("dy", "0.3em")
+        .attr("fill", "#2b2b2b")
+        .style("pointer-events", "none");
 
       function ticked() {
+        // Keep every bubble inside the chart
+        nodes.forEach(d => {
+          d.x = Math.max(d.radius, Math.min(width - d.radius, d.x));
+          d.y = Math.max(40 + d.radius, Math.min(height - d.radius, d.y));
+        });
         node.attr("cx", d => d.x).attr("cy", d => d.y);
         labels.attr("x", d => d.x).attr("y", d => d.y);
       }
@@ -450,14 +602,21 @@
     function updateVisibleClusters() {
       const selectedClusters = $(".cluster-checkbox:checked")
         .map(function () { return $(this).val(); }).get();
+      const isOn = c => selectedClusters.includes(c.toString());
 
-      node.transition().duration(400).style("opacity", d =>
-        selectedClusters.includes(d.cluster.toString()) ? 1 : 0
-      );
+      // Hidden bubbles also stop reacting to the mouse.
+      // (Before: they were only made invisible, so they still showed tooltips and opened documents.)
+      node.style("pointer-events", d => isOn(d.cluster) ? null : "none")
+        .transition().duration(400).style("opacity", d => isOn(d.cluster) ? 1 : 0);
 
-      labels.transition().duration(400).style("opacity", d =>
-        selectedClusters.includes(d.cluster.toString()) ? 1 : 0
-      );
+      labels.transition().duration(400).style("opacity", d => isOn(d.cluster) ? 1 : 0);
+
+      d3.selectAll(".cluster-title").transition().duration(400)
+        .style("opacity", c => isOn(c) ? 1 : 0.25);
+
+      d3.selectAll("#mds-view circle")
+        .style("pointer-events", d => isOn(d.cluster) ? null : "none")
+        .transition().duration(400).style("opacity", d => isOn(d.cluster) ? 1 : 0.1);
 
       $(".cluster-block").each(function () {
         const cluster = $(this).data("cluster").toString();
@@ -466,7 +625,7 @@
     }
 
     $(document).ready(() => {
-      $("#reset-btn").on("click", () => $("#documents").empty());
+      $("#reset-btn").on("click", () => $("#documents").html('<p class="empty-note">Click a document in the list or on either chart to open it here.</p>'));
 
       d3.csv("document_clusters.csv").then(data => {
         data.forEach(d => {
@@ -480,6 +639,7 @@
         // Create checkboxes
         const allClusters = [...new Set(data.map(d => d.Cluster))].sort();
         const $filterBox = $("#cluster-filters").empty();
+        $filterBox.append('<span class="filter-title">Show clusters:</span>');
         allClusters.forEach(cluster => {
           $filterBox.append(`
             <label><input type="checkbox" class="cluster-checkbox" value="${cluster}" checked>
@@ -509,8 +669,9 @@
 
     d3.json("mds_data.json").then(data => {
       const svg = d3.select("#mds-view svg");
-      const width = +svg.attr("width");
-      const height = +svg.attr("height");
+      // The SVG scales to fit its box; drawing coordinates stay 800 × 550
+      const width = 800;
+      const height = 550;
       const margin = 40;
 
       const xExtent = d3.extent(data, d => d.x);
@@ -563,7 +724,38 @@
             alert(`Clicked: ${d.id}`);
           }
         });
+
+      // Apply the cluster filters to the MDS plot too, if they're already set
+      if (node) updateVisibleClusters();
     });
+
+    // Fade each section in as it scrolls into view.
+    // Sections already on screen when the page opens fade in one after another.
+    (function () {
+      const fadeItems = document.querySelectorAll(
+        ".navbar, #container > .panel, .section-title, #bubble-chart, #mds-view"
+      );
+      if (!("IntersectionObserver" in window)) {
+        fadeItems.forEach(el => el.classList.add("show"));
+        return;
+      }
+      let firstBatch = true;
+      const fadeObserver = new IntersectionObserver(function (entries) {
+        let order = 0;
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            if (firstBatch) {
+              entry.target.style.transitionDelay = Math.min(order * 0.15, 0.9) + "s";
+              order++;
+            }
+            entry.target.classList.add("show");
+            fadeObserver.unobserve(entry.target);
+          }
+        });
+        firstBatch = false;
+      }, { threshold: 0.1 });
+      requestAnimationFrame(() => fadeItems.forEach(el => fadeObserver.observe(el)));
+    })();
   </script>
 </body>
 </html>
